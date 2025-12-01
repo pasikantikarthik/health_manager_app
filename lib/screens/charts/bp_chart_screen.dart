@@ -64,7 +64,7 @@ class BPChartScreen extends StatelessWidget {
                 barWidth: 3,
                 belowBarData: BarAreaData(
                   show: true,
-                  color: Colors.blue.withOpacity(0.2),
+                  color: Colors.blue.withValues(alpha: 0.2),
                 ),
               ),
               LineChartBarData(
@@ -74,7 +74,7 @@ class BPChartScreen extends StatelessWidget {
                 barWidth: 3,
                 belowBarData: BarAreaData(
                   show: true,
-                  color: Colors.green.withOpacity(0.2),
+                  color: Colors.green.withValues(alpha: 0.2),
                 ),
               ),
             ],

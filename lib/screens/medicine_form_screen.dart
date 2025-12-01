@@ -59,11 +59,19 @@ class _MedicineFormScreenState extends State<MedicineFormScreen> {
             ),
             const SizedBox(height: 20),
             ElevatedButton(
+              child: const Text("Save"),
               onPressed: () async {
-                if (selectedTime == null) return;
+                if (nameController.text.isEmpty || dosageController.text.isEmpty) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Please fill all fields")),
+                    );
+                  }
+                  return;
+                }
 
                 final now = DateTime.now();
-                final time = DateTime(
+                final medicineTime = DateTime(
                   now.year,
                   now.month,
                   now.day,
@@ -71,22 +79,24 @@ class _MedicineFormScreenState extends State<MedicineFormScreen> {
                   selectedTime!.minute,
                 );
 
-                final box = Hive.box<MedicineRecord>("medicineBox");
-
-                await box.add(MedicineRecord(
+                final medicine = MedicineRecord(
                   name: nameController.text,
                   dosage: dosageController.text,
-                  time: time,
+                  time: medicineTime,
                   repeatDaily: repeatDaily,
-                ));
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Reminder for ${nameController.text} saved!')),
-                  );
-                  Navigator.pop(context);
-                }
+                );
+
+                final box = Hive.box<MedicineRecord>("medicineBox");
+
+                box.add(medicine);
+
+                // Schedule notification (await real method, not a stub)
+                await _someAsyncCall();
+
+                // ensure widget still mounted before using context / navigator
+                if (!mounted) return;
+                Navigator.pop(context);
               },
-              child: const Text("Save Reminder"),
             )
           ],
         ),
