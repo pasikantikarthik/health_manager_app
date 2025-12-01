@@ -91,7 +91,6 @@ class _MedicineFormScreenState extends State<MedicineFormScreen> {
                 box.add(medicine);
 
                 // Schedule notification (await real method, not a stub)
-                await _someAsyncCall();
 
                 // ensure widget still mounted before using context / navigator
                 if (!mounted) return;

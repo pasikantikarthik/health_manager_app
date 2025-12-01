@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../models/bp_record.dart';
 import 'edit_bp_screen.dart';
+import 'bp_form_screen.dart';
 import 'charts/bp_chart_screen.dart';
 
 class BPScreen extends StatelessWidget {
@@ -73,6 +74,10 @@ class BPScreen extends StatelessWidget {
             },
           );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BPFormScreen())),
+        child: const Icon(Icons.add),
       ),
     );
   }
