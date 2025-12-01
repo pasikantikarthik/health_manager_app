@@ -79,8 +79,12 @@ class _MedicineFormScreenState extends State<MedicineFormScreen> {
                   time: time,
                   repeatDaily: repeatDaily,
                 ));
-
-                Navigator.pop(context);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Reminder for ${nameController.text} saved!')),
+                  );
+                  Navigator.pop(context);
+                }
               },
               child: const Text("Save Reminder"),
             )

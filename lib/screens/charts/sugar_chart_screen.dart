@@ -51,7 +51,7 @@ class SugarChartScreen extends StatelessWidget {
                 dotData: FlDotData(show: true),
                 belowBarData: BarAreaData(
                   show: true,
-                  color: Colors.purple.withOpacity(0.25),
+                  color: Colors.purple.withValues(alpha: 0.25),
                 ),
               ),
             ],

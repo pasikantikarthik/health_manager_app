@@ -1,50 +1,79 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../models/sugar_record.dart';
+import 'edit_sugar_screen.dart';
+import 'charts/sugar_chart_screen.dart';
 
-class SugarListScreen extends StatefulWidget {
+class SugarListScreen extends StatelessWidget {
   const SugarListScreen({super.key});
 
   @override
-  State<SugarListScreen> createState() => _SugarListScreenState();
-}
-
-class _SugarListScreenState extends State<SugarListScreen> {
-  late Box<SugarRecord> sugarBox;
-
-  @override
-  void initState() {
-    super.initState();
-    sugarBox = Hive.box<SugarRecord>("sugarBox");
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final box = Hive.box<SugarRecord>("sugarBox");
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Sugar Records")),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showSugarEntryDialog(),
-        child: const Icon(Icons.add),
+      appBar: AppBar(
+        title: const Text("Sugar Records"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.show_chart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SugarChartScreen()),
+              );
+            },
+          ),
+        ],
       ),
-      body: ValueListenableBuilder(
-        valueListenable: sugarBox.listenable(),
-        builder: (context, Box<SugarRecord> box, _) {
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SugarFormScreen()),
+          );
+        },
+      ),
+      body: StreamBuilder(
+        stream: box.watch(),
+        builder: (context, snapshot) {
           if (box.isEmpty) {
-            return const Center(child: Text("No sugar records yet."));
+            return const Center(child: Text("No sugar records yet"));
           }
 
           return ListView.builder(
             itemCount: box.length,
-            itemBuilder: (context, index) {
-              final record = box.get(index)!;
-
+            itemBuilder: (_, index) {
+              final record = box.getAt(index)!;
               return Card(
+                margin: const EdgeInsets.all(8),
                 child: ListTile(
-                  title: Text("${record.value} mg/dL (${record.type})"),
+                  leading: const Icon(Icons.bloodtype, color: Colors.red),
+                  title: Text("${record.level} mg/dL"),
                   subtitle: Text(record.timestamp.toString()),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () => sugarBox.delete(index),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EditSugarScreen(
+                                index: index,
+                                record: record,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => box.deleteAt(index),
+                      ),
+                    ],
                   ),
                 ),
               );
@@ -54,65 +83,55 @@ class _SugarListScreenState extends State<SugarListScreen> {
       ),
     );
   }
+}
 
-  // Add Sugar Entry
-  void _showSugarEntryDialog() {
-    final valueController = TextEditingController();
-    String selectedType = "FBS"; // default
+class SugarFormScreen extends StatelessWidget {
+  const SugarFormScreen({super.key});
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Add Sugar Record"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: valueController,
-                decoration: const InputDecoration(labelText: "Sugar Value"),
-                keyboardType: TextInputType.number,
+  @override
+  Widget build(BuildContext context) {
+    final controller = TextEditingController();
+    final box = Hive.box<SugarRecord>("sugarBox");
+
+    return Scaffold(
+      appBar: AppBar(title: const Text("Add Sugar")),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: "Sugar Level (mg/dL)",
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(height: 10),
-              DropdownButton<String>(
-                value: selectedType,
-                items: const [
-                  DropdownMenuItem(value: "FBS", child: Text("FBS (Fasting)")),
-                  DropdownMenuItem(value: "PPBS", child: Text("PPBS (Post Meal)")),
-                  DropdownMenuItem(value: "RBS", child: Text("Random)")),
-                ],
-                onChanged: (value) {
-                  selectedType = value!;
-                  setState(() {});
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              keyboardType: TextInputType.number,
             ),
+            const SizedBox(height: 20),
             ElevatedButton(
+              child: const Text("Save"),
               onPressed: () {
-                final value = int.tryParse(valueController.text);
-                if (value == null) return;
+                final value = int.tryParse(controller.text);
+                if (value == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please enter valid sugar level")),
+                  );
+                  return;
+                }
 
-                sugarBox.add(
+                box.add(
                   SugarRecord(
-                    value: value,
-                    type: selectedType,
+                    level: value,
                     timestamp: DateTime.now(),
                   ),
                 );
 
                 Navigator.pop(context);
               },
-              child: const Text("Save"),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }
